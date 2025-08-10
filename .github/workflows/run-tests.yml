@@ -1,0 +1,36 @@
+name: Run Midas Task Tests
+
+on:
+  workflow_dispatch:
+    inputs:
+      testclass:
+        description: 'Name of test class to run'
+        required: true
+        default: 'TaskOneTests'
+  push:
+
+jobs:
+  run-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17 (Temurin)
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: 'maven'
+
+      - name: Run given test
+        run: |
+          echo "Running test: ${{ github.event.inputs.testclass }}"
+          mvn -Dtest="${{ github.event.inputs.testclass }}" -DtrimStackTrace=false test | tee output.log || true
+
+      - name: Upload output log
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-output
+          path: output.log
